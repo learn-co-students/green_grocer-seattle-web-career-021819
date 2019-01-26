@@ -16,36 +16,36 @@ def consolidate_cart(cart)
 end
 
 def apply_coupons(cart, coupons)
-  c_a = []
-	c = {}
-	coupons.each{|value|
-	  count = coupons.count(value)
-	  c = {:count => count}
-	  c_a << value.merge(c)
-	}
-	c_a.uniq!
-	c_h = {}
-	c = {}
-	cart.each {|cart_item, cart_values|
-	  c_a.each {|coupon_value|
-	    if coupon_value[:item] == cart_item
-	      coupon_count = 0
-	      while cart_values[:count] >= coupon_value[:num] && coupon_value[:count] > 0
-	        string_item = "#{cart_item} W/COUPON"
-	        coupon_count += 1
-	        c = {string_item => {:price => coupon_value[:cost],
-	                    :clearance => cart_values[:clearance],
-	                    :count => coupon_count}}
-	        cart_values[:count] -= coupon_value[:num]
-	        coupon_value[:count] -= 1
+  if coupons.empty?
+    return cart
+  end
+  receipt = {}
+	a = {}
+	cart.each {|cart_key, cart_values|
+	  coupons.each{|coupons_values|
+	    if cart_key == coupons_values[:item] && !receipt.has_key?("#{cart_key} W/COUPON")
+	      cpn_string = "#{cart_key} W/COUPON"
+	      cpn_item_count = 0
+	      while cart_values[:count] > 0 && cart_values[:count] >= coupons_values[:num]
+	        cpn_item_count += 1
+	        cart_values[:count] -= coupons_values[:num]
+	        a = {cpn_string => {:price => coupons_values[:cost],
+	                            :clearance => cart_values[:clearance],
+	                            :count => cpn_item_count}}
 	      end
+	      receipt = receipt.merge(a)
+	      a.clear
+        a = {cart_key => cart_values}
+        receipt = receipt.merge(a)
 	    else
-	      c = {cart_item => cart_values}
+	      if cart_values[:count] > 0 && !receipt.has_key?(cart_key)
+	        a = {cart_key => cart_values}
+	        receipt = receipt.merge(a)
+	      end
 	    end
-	    c_h = c_h.merge(c)
 	  }
 	}
-	c_h
+	receipt
 end
 
 def apply_clearance(cart)
