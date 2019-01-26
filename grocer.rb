@@ -65,5 +65,12 @@ def apply_clearance(cart)
 end
 
 def checkout(cart, coupons)
-  # code here
+  cart = consolidate_cart(cart)
+  cart = apply_coupons(cart, coupons)
+  cart = apply_clearance(cart)
+  sum = 0
+  cart.each{|cart_key, cart_values|
+    sum += cart_values[:price]
+  }
+  sum
 end
